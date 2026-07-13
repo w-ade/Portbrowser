@@ -1,19 +1,17 @@
 # mobilepreview
 
-A focused macOS window for previewing local websites at mobile viewport sizes.
+A focused macOS window for previewing local websites at iPhone viewport sizes.
 
-Paste a localhost or LAN URL, choose an iPhone preset, and keep the preview visible without opening Chrome DevTools. The app uses SwiftUI and the system `WKWebView`; it does not bundle Chromium.
+The current build opens the preview as a flush, full-size iPhone canvas without extra app chrome. The toolbar is being redesigned separately. The app uses SwiftUI and the system `WKWebView`; it does not bundle Chromium.
 
 ## Features
 
 - Localhost, LAN, and HTTPS URL support
-- iPhone and Pixel viewport presets
-- Portrait and landscape rotation
-- Reload and hard reload
-- Fit-to-window scaling
-- Recent URL history
-- Always-on-top mode
-- Default preview: `192.168.1.100:3000/rework`
+- Portrait iPhone 13 through iPhone 17 viewport presets
+- Full-size `402 x 874` iPhone 17 canvas by default
+- URL entry directly beneath the viewport
+- Fit-to-window scaling when the window is resized
+- Default preview: `192.168.1.100:3000`
 
 ## Requirements
 

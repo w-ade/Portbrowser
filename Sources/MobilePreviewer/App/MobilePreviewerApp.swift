@@ -16,7 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 860, height: 760),
+            contentRect: NSRect(x: 0, y: 0, width: 403, height: 952),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         window.title = "Mobile Previewer"
         window.titlebarAppearsTransparent = false
+        window.minSize = NSSize(width: 376, height: 890)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: ContentView())
         window.center()
