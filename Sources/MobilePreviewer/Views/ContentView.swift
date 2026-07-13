@@ -40,19 +40,32 @@ struct ContentView: View {
     }
 
     private var urlBar: some View {
-        TextField("localhost:3000 or 192.168.1.100:3000", text: $inputURL)
-            .textFieldStyle(.roundedBorder)
-            .font(.system(size: 13))
-            .onSubmit {
-                load(inputURL)
+        HStack(spacing: 6) {
+            TextField("localhost:3000 or 192.168.1.100:3000", text: $inputURL)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 13))
+                .onSubmit {
+                    load(inputURL)
+                }
+
+            Button {
+                reloadToken += 1
+            } label: {
+                RefreshIcon()
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .frame(height: 46)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .overlay(alignment: .top) {
-                Divider()
-            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .frame(width: 24, height: 24)
+            .help("Refresh")
+            .keyboardShortcut("r", modifiers: .command)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+        .frame(height: 46)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .overlay(alignment: .top) {
+            Divider()
+        }
     }
 
     private func deviceViewport(scale: CGFloat) -> some View {
