@@ -8,7 +8,7 @@ final class RecentURLStore {
 
     var urls: [String] = []
 
-    init(defaultURL: String? = LaunchURL.value ?? PreviewTarget.defaultURL) {
+    init(defaultURL: String? = LaunchURL.value) {
         load()
 
         if let defaultURL, !defaultURL.isEmpty {

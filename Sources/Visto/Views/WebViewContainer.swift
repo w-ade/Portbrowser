@@ -41,10 +41,11 @@ struct WebViewContainer: NSViewRepresentable {
             clearCacheThenReload(webView)
         }
 
-        guard context.coordinator.currentURL != url else {
+        guard !context.coordinator.hasLoadedInitialState || context.coordinator.currentURL != url else {
             return
         }
 
+        context.coordinator.hasLoadedInitialState = true
         context.coordinator.currentURL = url
 
         if let url {
@@ -77,19 +78,15 @@ struct WebViewContainer: NSViewRepresentable {
           html, body {
             height: 100%;
             margin: 0;
-            font: 15px -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #8f8f96;
-            background: #151518;
-            display: grid;
-            place-items: center;
+            background: #fff;
           }
         </style>
-        <span>Paste a local URL to preview it.</span>
         """
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         var currentURL: URL?
+        var hasLoadedInitialState = false
         var reloadToken = 0
         var hardReloadToken = 0
     }

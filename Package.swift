@@ -3,17 +3,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "MobilePreviewer",
+    name: "Visto",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "MobilePreviewer", targets: ["MobilePreviewer"])
+        .executable(name: "Visto", targets: ["Visto"])
     ],
     targets: [
         .executableTarget(
-            name: "MobilePreviewer",
-            path: "Sources/MobilePreviewer"
+            name: "Visto",
+            path: "Sources/Visto"
         )
     ]
 )

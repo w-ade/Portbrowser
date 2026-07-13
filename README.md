@@ -1,4 +1,4 @@
-# mobilepreview
+# Visto
 
 A focused macOS window for previewing local websites at iPhone viewport sizes.
 
@@ -11,7 +11,7 @@ The current build opens the preview as a flush, full-size iPhone canvas without 
 - Full-size `402 x 874` iPhone 17 canvas by default
 - URL entry directly beneath the viewport
 - Fit-to-window scaling when the window is resized
-- Default preview: `192.168.1.100:3000`
+- Blank canvas on launch
 
 ## Requirements
 
@@ -30,4 +30,4 @@ To launch with a specific URL:
 MOBILE_PREVIEW_URL=http://localhost:3000 ./script/build_and_run.sh
 ```
 
-The app bundle is generated at `dist/MobilePreviewer.app`.
+The app bundle is generated at `dist/Visto.app`.

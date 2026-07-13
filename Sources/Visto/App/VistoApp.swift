@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             defer: false
         )
 
-        window.title = "Mobile Previewer"
+        window.title = "Visto"
         window.titlebarAppearsTransparent = false
         window.minSize = NSSize(width: 376, height: 890)
         window.isReleasedWhenClosed = false

@@ -3,7 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var recentStore = RecentURLStore()
-    @State private var inputURL = PreviewTarget.defaultURL
+    @State private var inputURL = ""
     @State private var loadedURL: URL?
     @State private var selectedPreset = DevicePreset.defaultPreset
     @State private var isLandscape = false
@@ -33,9 +33,10 @@ struct ContentView: View {
             urlBar
         }
         .onAppear {
-            let defaultURL = LaunchURL.value ?? PreviewTarget.defaultURL
-            inputURL = defaultURL
-            load(defaultURL)
+            if let launchURL = LaunchURL.value {
+                inputURL = launchURL
+                load(launchURL)
+            }
         }
     }
 

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="MobilePreviewer"
-BUNDLE_ID="dev.wade.MobilePreviewer"
+APP_NAME="Visto"
+BUNDLE_ID="dev.wade.visto"
 MIN_SYSTEM_VERSION="14.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
