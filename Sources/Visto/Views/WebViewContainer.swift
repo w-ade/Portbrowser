@@ -15,8 +15,10 @@ struct WebViewContainer: NSViewRepresentable {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        configuration.defaultWebpagePreferences.preferredContentMode = .mobile
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"
         webView.allowsBackForwardNavigationGestures = true
         webView.navigationDelegate = context.coordinator
         webView.setValue(true, forKey: "drawsBackground")

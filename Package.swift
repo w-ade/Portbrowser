@@ -13,7 +13,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "Visto",
-            path: "Sources/Visto"
+            path: "Sources/Visto",
+            resources: [
+                .process("Resources")
+            ]
         )
     ]
 )
