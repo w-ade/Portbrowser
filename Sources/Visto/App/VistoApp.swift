@@ -29,9 +29,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @objc private func openNewWindow(_ sender: Any?) {
         let session = BrowserSession()
-        let window = NSWindow(
+        let window = VistoWindow(
             contentRect: NSRect(origin: .zero, size: windowSize),
-            styleMask: [.borderless],
+            styleMask: [.titled, .closable, .miniaturizable, .utilityWindow],
             backing: .buffered,
             defer: false
         )
@@ -40,6 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.backgroundColor = .white
         window.isOpaque = true
         window.hasShadow = true
+        window.isFloatingPanel = false
+        window.hidesOnDeactivate = false
+        window.isMovableByWindowBackground = false
         window.contentMinSize = windowSize
         window.contentMaxSize = windowSize
         window.isReleasedWhenClosed = false
@@ -140,6 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         editMenu.addItem(menuItem(title: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
         editMenu.addItem(menuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
         editMenu.addItem(menuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(menuItem(title: "Delete", action: #selector(NSText.delete(_:)), keyEquivalent: ""))
         editMenu.addItem(menuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
         editMenuItem.submenu = editMenu
         mainMenu.addItem(editMenuItem)
