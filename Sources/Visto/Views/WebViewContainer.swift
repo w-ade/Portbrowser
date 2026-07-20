@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import WebKit
 
@@ -17,7 +18,7 @@ struct WebViewContainer: NSViewRepresentable {
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
         configuration.defaultWebpagePreferences.preferredContentMode = .mobile
 
-        let webView = WKWebView(frame: .zero, configuration: configuration)
+        let webView = FocusableWebView(frame: .zero, configuration: configuration)
         webView.customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"
         webView.allowsBackForwardNavigationGestures = true
         webView.navigationDelegate = context.coordinator
@@ -91,5 +92,16 @@ struct WebViewContainer: NSViewRepresentable {
         var hasLoadedInitialState = false
         var reloadToken = 0
         var hardReloadToken = 0
+    }
+}
+
+/// Ensures clicks in the preview claim first responder so Delete and
+/// Command-C/V reach page inputs through the AppKit responder chain.
+private final class FocusableWebView: WKWebView {
+    override var acceptsFirstResponder: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(self)
+        super.mouseDown(with: event)
     }
 }
