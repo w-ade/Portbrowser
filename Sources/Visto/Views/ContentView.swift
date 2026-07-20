@@ -2,13 +2,9 @@ import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    @State private var recentStore = RecentURLStore()
-    @State private var inputURL = ""
-    @State private var loadedURL: URL?
+    @ObservedObject var session: BrowserSession
     @State private var selectedPreset = DevicePreset.defaultPreset
     @State private var isLandscape = false
-    @State private var reloadToken = 0
-    @State private var hardReloadToken = 0
     private let statusHeight: CGFloat = 62
 
     private var viewportWidth: CGFloat {
@@ -35,42 +31,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if let launchURL = LaunchURL.value {
-                inputURL = launchURL
-                load(launchURL)
-            } else if let recentURL = recentStore.urls.first {
-                inputURL = recentURL
-                load(recentURL)
-            }
-        }
-    }
-
-    private var urlBar: some View {
-        HStack(spacing: 6) {
-            TextField("localhost:3000 or 192.168.1.100:3000", text: $inputURL)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 13))
-                .onSubmit {
-                    load(inputURL)
-                }
-
-            Button {
-                reloadToken += 1
-            } label: {
-                RefreshIcon()
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .frame(width: 24, height: 24)
-            .help("Refresh")
-            .keyboardShortcut("r", modifiers: .command)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 11)
-        .frame(height: 46)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .overlay(alignment: .top) {
-            Divider()
+            session.loadInitialURLIfNeeded()
         }
     }
 
@@ -80,9 +41,9 @@ struct ContentView: View {
                 .frame(width: viewportWidth, height: statusHeight)
 
             WebViewContainer(
-                url: loadedURL,
-                reloadToken: reloadToken,
-                hardReloadToken: hardReloadToken,
+                url: session.loadedURL,
+                reloadToken: session.reloadToken,
+                hardReloadToken: session.hardReloadToken,
                 pageZoom: 1
             )
             .frame(width: viewportWidth, height: webViewHeight)
@@ -108,16 +69,6 @@ struct ContentView: View {
         return max(0.1, min(1.0, widthScale, heightScale))
     }
 
-    private func load(_ rawValue: String) {
-        guard let url = URLNormalizer.normalize(rawValue) else {
-            return
-        }
-
-        let normalized = url.absoluteString
-        inputURL = normalized
-        loadedURL = url
-        recentStore.add(normalized)
-    }
 }
 
 private struct IPhoneStatusOverlay: View {

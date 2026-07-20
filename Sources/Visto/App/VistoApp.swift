@@ -3,9 +3,15 @@ import AppKit
 
 @main
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var windows: [NSWindow] = []
-    private let windowSize = NSSize(width: 366, height: 795)
+    private var sessions: [ObjectIdentifier: BrowserSession] = [:]
+    private let viewportSize = NSSize(width: 366, height: 795)
+    private let chromeHeight: CGFloat = 32
+
+    private var windowSize: NSSize {
+        NSSize(width: viewportSize.width, height: viewportSize.height + chromeHeight)
+    }
 
     static func main() {
         let app = NSApplication.shared
@@ -22,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openNewWindow(_ sender: Any?) {
+        let session = BrowserSession()
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: windowSize),
             styleMask: [.borderless],
@@ -33,14 +40,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.backgroundColor = .white
         window.isOpaque = true
         window.hasShadow = true
-        window.isMovableByWindowBackground = true
         window.contentMinSize = windowSize
         window.contentMaxSize = windowSize
         window.isReleasedWhenClosed = false
-        window.contentView = NSHostingView(rootView: ContentView())
+        window.delegate = self
+        window.contentView = NSHostingView(
+            rootView: VStack(spacing: 0) {
+                BrowserChromeView(session: session)
+                    .frame(width: viewportSize.width, height: chromeHeight)
+
+                ContentView(session: session)
+                    .frame(width: viewportSize.width, height: viewportSize.height)
+            }
+            .frame(width: windowSize.width, height: windowSize.height)
+        )
         placeOnMainDisplay(window)
 
         windows.append(window)
+        sessions[ObjectIdentifier(window)] = session
 
         NSApp.setActivationPolicy(.regular)
         window.makeKeyAndOrderFront(nil)
@@ -49,6 +66,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func closeWindow(_ sender: Any?) {
         NSApp.keyWindow?.close()
+    }
+
+    @objc private func reloadCurrentWindow(_ sender: Any?) {
+        guard let window = NSApp.keyWindow else {
+            return
+        }
+
+        sessions[ObjectIdentifier(window)]?.reload()
+    }
+
+    @objc private func focusLocationCurrentWindow(_ sender: Any?) {
+        guard let window = NSApp.keyWindow else {
+            return
+        }
+
+        sessions[ObjectIdentifier(window)]?.focusAddress()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else {
+            return
+        }
+
+        sessions.removeValue(forKey: ObjectIdentifier(window))
+        windows.removeAll { $0 === window }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -84,6 +126,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let fileMenuItem = NSMenuItem()
         let fileMenu = NSMenu(title: "File")
         fileMenu.addItem(menuItem(title: "New Window", action: #selector(openNewWindow(_:)), keyEquivalent: "n"))
+        fileMenu.addItem(menuItem(title: "Open Location…", action: #selector(focusLocationCurrentWindow(_:)), keyEquivalent: "k"))
+        fileMenu.addItem(.separator())
         fileMenu.addItem(menuItem(title: "Close Window", action: #selector(closeWindow(_:)), keyEquivalent: "w"))
         fileMenuItem.submenu = fileMenu
         mainMenu.addItem(fileMenuItem)
@@ -99,6 +143,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         editMenu.addItem(menuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
         editMenuItem.submenu = editMenu
         mainMenu.addItem(editMenuItem)
+
+        let viewMenuItem = NSMenuItem()
+        let viewMenu = NSMenu(title: "View")
+        viewMenu.addItem(menuItem(title: "Reload", action: #selector(reloadCurrentWindow(_:)), keyEquivalent: "r"))
+        viewMenuItem.submenu = viewMenu
+        mainMenu.addItem(viewMenuItem)
 
         NSApp.mainMenu = mainMenu
     }
