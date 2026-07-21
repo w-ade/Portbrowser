@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class BrowserSession: ObservableObject {
     @Published var inputURL = ""
+    @Published var devicePreset: DevicePreset = .defaultPreset
     @Published private(set) var loadedURL: URL?
     @Published private(set) var reloadToken = 0
     @Published private(set) var hardReloadToken = 0

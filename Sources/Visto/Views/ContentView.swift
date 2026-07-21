@@ -3,16 +3,32 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var session: BrowserSession
-    @State private var selectedPreset = DevicePreset.defaultPreset
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isLandscape = false
-    private let statusHeight: CGFloat = 62
+
+    // The bundled status-bar asset is drawn for a 402 x 62 iPhone 17 canvas;
+    // everything scales off that so the chrome morphs with the device.
+    private let designWidth: CGFloat = 402
+    private let designStatusHeight: CGFloat = 62
+
+    private var preset: DevicePreset {
+        session.devicePreset
+    }
 
     private var viewportWidth: CGFloat {
-        isLandscape ? selectedPreset.height : selectedPreset.width
+        isLandscape ? preset.height : preset.width
     }
 
     private var viewportHeight: CGFloat {
-        isLandscape ? selectedPreset.width : selectedPreset.height
+        isLandscape ? preset.width : preset.height
+    }
+
+    private var statusScale: CGFloat {
+        viewportWidth / designWidth
+    }
+
+    private var statusHeight: CGFloat {
+        designStatusHeight * statusScale
     }
 
     private var webViewHeight: CGFloat {
@@ -29,6 +45,7 @@ struct ContentView: View {
                 deviceViewport(scale: scale)
                 statusOverlay(scale: scale)
             }
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: preset)
         }
         .onAppear {
             session.loadInitialURLIfNeeded()
@@ -56,8 +73,8 @@ struct ContentView: View {
 
     private func statusOverlay(scale: CGFloat) -> some View {
         IPhoneStatusOverlay()
-            .frame(width: viewportWidth, height: statusHeight, alignment: .top)
-            .scaleEffect(scale, anchor: .topLeading)
+            .frame(width: designWidth, height: designStatusHeight, alignment: .top)
+            .scaleEffect(statusScale * scale, anchor: .topLeading)
             .frame(width: viewportWidth * scale, height: statusHeight * scale, alignment: .topLeading)
             .allowsHitTesting(false)
     }

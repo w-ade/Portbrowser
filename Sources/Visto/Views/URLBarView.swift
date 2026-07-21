@@ -15,12 +15,14 @@ struct URLBarView: NSViewRepresentable {
 }
 
 final class URLBarNSView: NSView, NSTextFieldDelegate {
+    private let deviceButton = NSPopUpButton(frame: .zero, pullsDown: false)
     private let addressField = NSTextField()
     private let refreshButton = NSButton()
     private let separator = NSBox()
     private var session: BrowserSession
     private var inputURLCancellable: AnyCancellable?
     private var focusAddressCancellable: AnyCancellable?
+    private var devicePresetCancellable: AnyCancellable?
 
     init(session: BrowserSession) {
         self.session = session
@@ -29,6 +31,7 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
         wantsLayer = true
         layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
 
+        configureDeviceButton()
         configureAddressField()
         configureRefreshButton()
 
@@ -37,6 +40,7 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
 
         observeInputURL()
         observeFocusAddress()
+        observeDevicePreset()
     }
 
     @available(*, unavailable)
@@ -52,12 +56,17 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
         let leading: CGFloat = 12
         let trailing: CGFloat = 7
         let refreshWidth: CGFloat = 24
-        let gap: CGFloat = 5
+        let gap: CGFloat = 6
+        let deviceWidth: CGFloat = 128
+
+        deviceButton.frame = NSRect(x: leading, y: controlY, width: deviceWidth, height: controlHeight)
+
         let refreshX = bounds.width - trailing - refreshWidth
+        let addressX = leading + deviceWidth + gap
         addressField.frame = NSRect(
-            x: leading,
+            x: addressX,
             y: controlY,
-            width: max(80, refreshX - gap - leading),
+            width: max(80, refreshX - gap - addressX),
             height: controlHeight
         )
         refreshButton.frame = NSRect(x: refreshX, y: controlY, width: refreshWidth, height: controlHeight)
@@ -72,10 +81,27 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
         self.session = session
         observeInputURL()
         observeFocusAddress()
+        observeDevicePreset()
     }
 
     func controlTextDidChange(_ notification: Notification) {
         session.inputURL = addressField.stringValue
+    }
+
+    private func configureDeviceButton() {
+        deviceButton.controlSize = .small
+        deviceButton.font = .systemFont(ofSize: 11)
+        deviceButton.removeAllItems()
+
+        for preset in DevicePreset.presets {
+            deviceButton.addItem(withTitle: preset.name)
+            deviceButton.lastItem?.representedObject = preset.id
+        }
+
+        deviceButton.target = self
+        deviceButton.action = #selector(selectDevice)
+        deviceButton.toolTip = "Device viewport"
+        addSubview(deviceButton)
     }
 
     private func configureAddressField() {
@@ -124,6 +150,32 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
                 self.window?.makeFirstResponder(self.addressField)
                 self.addressField.selectText(nil)
             }
+    }
+
+    private func observeDevicePreset() {
+        devicePresetCancellable = session.$devicePreset
+            .removeDuplicates()
+            .sink { [weak self] preset in
+                guard
+                    let self,
+                    let index = DevicePreset.presets.firstIndex(where: { $0.id == preset.id })
+                else {
+                    return
+                }
+
+                self.deviceButton.selectItem(at: index)
+            }
+    }
+
+    @objc private func selectDevice() {
+        guard
+            let id = deviceButton.selectedItem?.representedObject as? String,
+            let preset = DevicePreset.presets.first(where: { $0.id == id })
+        else {
+            return
+        }
+
+        session.devicePreset = preset
     }
 
     @objc private func loadAddress() {
