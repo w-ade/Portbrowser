@@ -7,10 +7,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var windows: [NSWindow] = []
     private var sessions: [ObjectIdentifier: BrowserSession] = [:]
     private let viewportSize = NSSize(width: 366, height: 795)
-    private let chromeHeight: CGFloat = 32
+    private let urlBarHeight: CGFloat = 32
 
-    private var windowSize: NSSize {
-        NSSize(width: viewportSize.width, height: viewportSize.height + chromeHeight)
+    private var contentSize: NSSize {
+        NSSize(width: viewportSize.width, height: viewportSize.height + urlBarHeight)
     }
 
     static func main() {
@@ -30,8 +30,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc private func openNewWindow(_ sender: Any?) {
         let session = BrowserSession()
         let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: windowSize),
-            styleMask: [.borderless],
+            contentRect: NSRect(origin: .zero, size: contentSize),
+            styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
@@ -40,19 +40,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.backgroundColor = .white
         window.isOpaque = true
         window.hasShadow = true
-        window.contentMinSize = windowSize
-        window.contentMaxSize = windowSize
+        window.contentMinSize = contentSize
+        window.contentMaxSize = contentSize
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.contentView = NSHostingView(
             rootView: VStack(spacing: 0) {
-                BrowserChromeView(session: session)
-                    .frame(width: viewportSize.width, height: chromeHeight)
-
                 ContentView(session: session)
                     .frame(width: viewportSize.width, height: viewportSize.height)
+
+                URLBarView(session: session)
+                    .frame(width: viewportSize.width, height: urlBarHeight)
             }
-            .frame(width: windowSize.width, height: windowSize.height)
+            .frame(width: contentSize.width, height: contentSize.height)
         )
         placeOnMainDisplay(window)
 

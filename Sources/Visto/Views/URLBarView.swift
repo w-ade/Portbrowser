@@ -2,31 +2,19 @@ import AppKit
 import Combine
 import SwiftUI
 
-struct BrowserChromeView: NSViewRepresentable {
+struct URLBarView: NSViewRepresentable {
     @ObservedObject var session: BrowserSession
 
-    func makeNSView(context: Context) -> BrowserChromeNSView {
-        BrowserChromeNSView(session: session)
+    func makeNSView(context: Context) -> URLBarNSView {
+        URLBarNSView(session: session)
     }
 
-    func updateNSView(_ nsView: BrowserChromeNSView, context: Context) {
+    func updateNSView(_ nsView: URLBarNSView, context: Context) {
         nsView.updateSession(session)
     }
 }
 
-final class BrowserChromeNSView: NSView, NSTextFieldDelegate {
-    private let closeButton = NSWindow.standardWindowButton(
-        .closeButton,
-        for: [.titled, .closable]
-    )!
-    private let minimizeButton = NSWindow.standardWindowButton(
-        .miniaturizeButton,
-        for: [.titled, .miniaturizable]
-    )!
-    private let zoomButton = NSWindow.standardWindowButton(
-        .zoomButton,
-        for: [.titled, .resizable]
-    )!
+final class URLBarNSView: NSView, NSTextFieldDelegate {
     private let addressField = NSTextField()
     private let refreshButton = NSButton()
     private let separator = NSBox()
@@ -41,7 +29,6 @@ final class BrowserChromeNSView: NSView, NSTextFieldDelegate {
         wantsLayer = true
         layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
 
-        configureWindowButtons()
         configureAddressField()
         configureRefreshButton()
 
@@ -60,31 +47,21 @@ final class BrowserChromeNSView: NSView, NSTextFieldDelegate {
     override func layout() {
         super.layout()
 
-        let buttonSize = NSSize(width: 14, height: 14)
-        let buttonY = floor((bounds.height - buttonSize.height) / 2)
-        closeButton.frame = NSRect(x: 12, y: buttonY, width: buttonSize.width, height: buttonSize.height)
-        minimizeButton.frame = NSRect(x: 32, y: buttonY, width: buttonSize.width, height: buttonSize.height)
-        zoomButton.frame = NSRect(x: 52, y: buttonY, width: buttonSize.width, height: buttonSize.height)
-
         let controlHeight: CGFloat = 22
         let controlY = floor((bounds.height - controlHeight) / 2)
-        let addressX: CGFloat = 78
-        let refreshWidth: CGFloat = 24
+        let leading: CGFloat = 12
         let trailing: CGFloat = 7
+        let refreshWidth: CGFloat = 24
         let gap: CGFloat = 5
         let refreshX = bounds.width - trailing - refreshWidth
         addressField.frame = NSRect(
-            x: addressX,
+            x: leading,
             y: controlY,
-            width: max(80, refreshX - gap - addressX),
+            width: max(80, refreshX - gap - leading),
             height: controlHeight
         )
         refreshButton.frame = NSRect(x: refreshX, y: controlY, width: refreshWidth, height: controlHeight)
-        separator.frame = NSRect(x: 0, y: 0, width: bounds.width, height: 1)
-    }
-
-    override func mouseDown(with event: NSEvent) {
-        window?.performDrag(with: event)
+        separator.frame = NSRect(x: 0, y: bounds.height - 1, width: bounds.width, height: 1)
     }
 
     func updateSession(_ session: BrowserSession) {
@@ -99,18 +76,6 @@ final class BrowserChromeNSView: NSView, NSTextFieldDelegate {
 
     func controlTextDidChange(_ notification: Notification) {
         session.inputURL = addressField.stringValue
-    }
-
-    private func configureWindowButtons() {
-        closeButton.target = self
-        closeButton.action = #selector(closeWindow)
-        minimizeButton.target = self
-        minimizeButton.action = #selector(minimizeWindow)
-        zoomButton.isEnabled = false
-
-        addSubview(closeButton)
-        addSubview(minimizeButton)
-        addSubview(zoomButton)
     }
 
     private func configureAddressField() {
@@ -159,14 +124,6 @@ final class BrowserChromeNSView: NSView, NSTextFieldDelegate {
                 self.window?.makeFirstResponder(self.addressField)
                 self.addressField.selectText(nil)
             }
-    }
-
-    @objc private func closeWindow() {
-        window?.close()
-    }
-
-    @objc private func minimizeWindow() {
-        window?.miniaturize(nil)
     }
 
     @objc private func loadAddress() {
