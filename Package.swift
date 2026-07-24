@@ -3,17 +3,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "PortBrowser",
+    name: "Portview",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "PortBrowser", targets: ["PortBrowser"])
+        .executable(name: "Portview", targets: ["Portview"])
     ],
     targets: [
         .executableTarget(
-            name: "PortBrowser",
-            path: "Sources/PortBrowser",
+            name: "Portview",
+            path: "Sources/Portview",
             resources: [
                 .process("Resources")
             ]

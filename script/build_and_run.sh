@@ -2,9 +2,9 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="PortBrowser"
-DISPLAY_NAME="Port Browser"
-BUNDLE_ID="dev.wade.portbrowser"
+APP_NAME="Portview"
+DISPLAY_NAME="Portview"
+BUNDLE_ID="dev.wade.portview"
 MIN_SYSTEM_VERSION="14.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -23,7 +23,7 @@ pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 swift build
 BUILD_DIR="$(swift build --show-bin-path)"
 BUILD_BINARY="$BUILD_DIR/$APP_NAME"
-RESOURCE_BUNDLE="$BUILD_DIR/PortBrowser_PortBrowser.bundle"
+RESOURCE_BUNDLE="$BUILD_DIR/Portview_Portview.bundle"
 
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS" "$APP_RESOURCES"

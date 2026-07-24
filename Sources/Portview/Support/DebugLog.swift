@@ -9,6 +9,6 @@ enum DebugLog {
             return
         }
 
-        FileHandle.standardError.write(Data("[portbrowser] \(message())\n".utf8))
+        FileHandle.standardError.write(Data("[portview] \(message())\n".utf8))
     }
 }

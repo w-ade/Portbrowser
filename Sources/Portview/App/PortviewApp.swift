@@ -36,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             defer: false
         )
 
-        window.title = "Port Browser"
+        window.title = "Portview"
         window.backgroundColor = .white
         window.isOpaque = true
         window.hasShadow = true
@@ -118,8 +118,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let mainMenu = NSMenu()
 
         let appMenuItem = NSMenuItem()
-        let appMenu = NSMenu(title: "Port Browser")
-        appMenu.addItem(menuItem(title: "Quit Port Browser", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        let appMenu = NSMenu(title: "Portview")
+        appMenu.addItem(menuItem(title: "Quit Portview", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         mainMenu.addItem(appMenuItem)
 
