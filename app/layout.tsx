@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Port Browser",
+  title: "Portview",
   description:
     "A focused macOS window for previewing local websites at iPhone viewport sizes.",
 };
