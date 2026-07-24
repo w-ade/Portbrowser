@@ -2,6 +2,6 @@
   "backlog": "BACKLOG.md",
   "docs": ["README.md"],
   "lanes": ["Now", "Next", "Later"],
-  "prefix": "VISTO",
+  "prefix": "PB",
   "port": 4780
 }

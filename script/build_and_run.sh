@@ -2,8 +2,9 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="Visto"
-BUNDLE_ID="dev.wade.visto"
+APP_NAME="PortBrowser"
+DISPLAY_NAME="Port Browser"
+BUNDLE_ID="dev.wade.portbrowser"
 MIN_SYSTEM_VERSION="14.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -22,7 +23,7 @@ pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 swift build
 BUILD_DIR="$(swift build --show-bin-path)"
 BUILD_BINARY="$BUILD_DIR/$APP_NAME"
-RESOURCE_BUNDLE="$BUILD_DIR/Visto_Visto.bundle"
+RESOURCE_BUNDLE="$BUILD_DIR/PortBrowser_PortBrowser.bundle"
 
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS" "$APP_RESOURCES"
@@ -43,7 +44,9 @@ cat >"$INFO_PLIST" <<PLIST
   <key>CFBundleIdentifier</key>
   <string>$BUNDLE_ID</string>
   <key>CFBundleName</key>
-  <string>$APP_NAME</string>
+  <string>$DISPLAY_NAME</string>
+  <key>CFBundleDisplayName</key>
+  <string>$DISPLAY_NAME</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSMinimumSystemVersion</key>
@@ -62,8 +65,8 @@ cat >"$INFO_PLIST" <<PLIST
 PLIST
 
 open_app() {
-  if [[ -n "${MOBILE_PREVIEW_URL:-}" ]]; then
-    /usr/bin/open -n "$APP_BUNDLE" --args "$MOBILE_PREVIEW_URL"
+  if [[ -n "${PORTBROWSER_URL:-}" ]]; then
+    /usr/bin/open -n "$APP_BUNDLE" --args "$PORTBROWSER_URL"
   else
     /usr/bin/open -n "$APP_BUNDLE"
   fi

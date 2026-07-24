@@ -115,11 +115,9 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
     }
 
     private func configureRefreshButton() {
-        refreshButton.image = NSImage(
-            systemSymbolName: "arrow.clockwise",
-            accessibilityDescription: "Reload"
-        )
+        refreshButton.image = RefreshIcon.image
         refreshButton.imagePosition = .imageOnly
+        refreshButton.setAccessibilityLabel("Reload")
         refreshButton.isBordered = false
         refreshButton.target = self
         refreshButton.action = #selector(reload)
@@ -179,6 +177,7 @@ final class URLBarNSView: NSView, NSTextFieldDelegate {
     }
 
     @objc private func loadAddress() {
+        DebugLog.log("loadAddress field=\(addressField.stringValue) session=\(ObjectIdentifier(session))")
         session.inputURL = addressField.stringValue
         session.loadInput()
     }

@@ -17,6 +17,8 @@ struct WebViewContainer: NSViewRepresentable {
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
         configuration.defaultWebpagePreferences.preferredContentMode = .mobile
 
+        DebugLog.log("makeNSView (new WKWebView)")
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"
         webView.allowsBackForwardNavigationGestures = true
@@ -27,6 +29,8 @@ struct WebViewContainer: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
+        DebugLog.log("updateNSView url=\(url?.absoluteString ?? "nil") reload=\(reloadToken) hard=\(hardReloadToken)")
+
         let nextZoom = max(0.1, pageZoom)
 
         if abs(webView.pageZoom - nextZoom) > 0.001 {
@@ -51,6 +55,7 @@ struct WebViewContainer: NSViewRepresentable {
         context.coordinator.currentURL = url
 
         if let url {
+            DebugLog.log("load \(url.absoluteString)")
             webView.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData))
         } else {
             webView.loadHTMLString(emptyStateHTML, baseURL: nil)
@@ -91,5 +96,9 @@ struct WebViewContainer: NSViewRepresentable {
         var hasLoadedInitialState = false
         var reloadToken = 0
         var hardReloadToken = 0
+
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            DebugLog.log("navigation START \(webView.url?.absoluteString ?? "nil")")
+        }
     }
 }

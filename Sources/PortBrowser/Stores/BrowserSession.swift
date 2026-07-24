@@ -14,6 +14,8 @@ final class BrowserSession: ObservableObject {
     private var hasLoadedInitialURL = false
 
     func loadInitialURLIfNeeded() {
+        DebugLog.log("loadInitialURLIfNeeded already=\(hasLoadedInitialURL) session=\(ObjectIdentifier(self))")
+
         guard !hasLoadedInitialURL else {
             return
         }
@@ -32,6 +34,8 @@ final class BrowserSession: ObservableObject {
     }
 
     func load(_ rawValue: String) {
+        DebugLog.log("session.load raw=\(rawValue) session=\(ObjectIdentifier(self))")
+
         guard let url = URLNormalizer.normalize(rawValue) else {
             return
         }

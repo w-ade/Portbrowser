@@ -1,4 +1,4 @@
-# Visto
+# Port Browser
 
 A focused macOS window for previewing local websites at iPhone viewport sizes.
 
@@ -27,7 +27,7 @@ The current build opens the preview as a flush, full-size iPhone canvas without 
 To launch with a specific URL:
 
 ```bash
-MOBILE_PREVIEW_URL=http://localhost:3000 ./script/build_and_run.sh
+PORTBROWSER_URL=http://localhost:3000 ./script/build_and_run.sh
 ```
 
-The app bundle is generated at `dist/Visto.app`.
+The app bundle is generated at `dist/PortBrowser.app`.

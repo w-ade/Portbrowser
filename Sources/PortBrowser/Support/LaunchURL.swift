@@ -2,7 +2,7 @@ import Foundation
 
 enum LaunchURL {
     static var value: String? {
-        if let environmentValue = ProcessInfo.processInfo.environment["MOBILE_PREVIEW_URL"],
+        if let environmentValue = ProcessInfo.processInfo.environment["PORTBROWSER_URL"],
            !environmentValue.isEmpty {
             return environmentValue
         }
