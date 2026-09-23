@@ -21,6 +21,7 @@ The current build opens the preview as a flush, full-size iPhone canvas without 
 ## Run
 
 ```bash
+cd app
 ./script/build_and_run.sh
 ```
 
@@ -29,12 +30,13 @@ To launch with a specific URL:
 ```bash
 PORTBROWSER_URL=http://localhost:3000 ./script/build_and_run.sh
 ```
+(run from `app/`)
 
 The app bundle is generated at `dist/Portbrowser.app`.
 
 ## App icon
 
-`Icon/AppIcon.icns` is rendered from the "Soft depth" design by `script/render_icon.swift`. To change it, edit that script and run:
+`app/Icon/AppIcon.icns` is rendered from the "Soft depth" design by `app/script/render_icon.swift`. To change it, edit that script and run (from `app/`):
 
 ```bash
 swift script/render_icon.swift . && iconutil -c icns Icon/AppIcon.iconset -o Icon/AppIcon.icns
