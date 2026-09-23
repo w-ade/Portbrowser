@@ -13,7 +13,7 @@
 - Spacing and layout rhythm: the source asset remains at its native 402 x 62 proportions. The Dynamic Island is centered at 126 x 37 with a 14 point top inset.
 - Colors and visual tokens: source transparency and black foreground pixels are preserved; the island is solid black.
 - Image quality and asset fidelity: Portbrowser bundles and renders the supplied SVG rather than recreating its status icons with SF Symbols.
-- Copy and content: the supplied 9:41 time is preserved exactly.
+- Copy and content: the baked-in 9:41 was replaced by a live SF Pro Semibold 17 clock aligned to the original glyph box (within ~0.2 pt).
 
 **Full-View Comparison Evidence**
 

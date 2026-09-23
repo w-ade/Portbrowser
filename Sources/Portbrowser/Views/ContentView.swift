@@ -105,6 +105,24 @@ private struct IPhoneStatusOverlay: View {
                     .interpolation(.high)
                     .frame(width: 402, height: 62)
             }
+
+            StatusClock()
         }
+    }
+}
+
+// Live replacement for the time the status-bar asset used to bake in.
+// Matches the asset's glyph box: centered at x 73.5, baseline at y 39.
+private struct StatusClock: View {
+    var body: some View {
+        TimelineView(.everyMinute) { context in
+            Text(context.date.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute(.twoDigits)))
+                .font(.system(size: 17, weight: .semibold))
+                .kerning(0.45)
+                .foregroundStyle(.black)
+                .fixedSize()
+                .position(x: 73.9, y: 32.7)
+        }
+        .frame(width: 402, height: 62)
     }
 }
