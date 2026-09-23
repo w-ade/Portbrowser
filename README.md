@@ -8,9 +8,9 @@ The current build opens the preview as a flush, full-size iPhone canvas without 
 
 - Localhost, LAN, and HTTPS URL support
 - Portrait iPhone 16, 17, and 18 series viewport presets
-- Full-size `402 x 874` iPhone 17 canvas by default
+- Opens at iPhone 18 Pro (`402 x 874`) with its measured Dynamic Island and a live clock
 - URL entry directly beneath the viewport
-- Fit-to-window scaling when the window is resized
+- Window sizes to the device at 100% and scales down only when the display is too small
 - Blank canvas on launch
 
 ## Requirements

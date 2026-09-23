@@ -1,17 +1,16 @@
 import SwiftUI
 import AppKit
+import Combine
 
 @main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var windows: [NSWindow] = []
     private var sessions: [ObjectIdentifier: BrowserSession] = [:]
-    private let viewportSize = NSSize(width: 366, height: 795)
+    private var presetObservers: [ObjectIdentifier: AnyCancellable] = [:]
     private let urlBarHeight: CGFloat = 32
-
-    private var contentSize: NSSize {
-        NSSize(width: viewportSize.width, height: viewportSize.height + urlBarHeight)
-    }
+    private let styleMask: NSWindow.StyleMask = [.titled, .closable, .miniaturizable]
+    private let screenMargin: CGFloat = 8
 
     static func main() {
         let app = NSApplication.shared
@@ -29,9 +28,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @objc private func openNewWindow(_ sender: Any?) {
         let session = BrowserSession()
+        let contentSize = contentSize(for: session.devicePreset, on: mainDisplay)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
-            styleMask: [.titled, .closable, .miniaturizable],
+            styleMask: styleMask,
             backing: .buffered,
             defer: false
         )
@@ -47,17 +47,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.contentView = NSHostingView(
             rootView: VStack(spacing: 0) {
                 ContentView(session: session)
-                    .frame(width: viewportSize.width, height: viewportSize.height)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 URLBarView(session: session)
-                    .frame(width: viewportSize.width, height: urlBarHeight)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: urlBarHeight)
             }
-            .frame(width: contentSize.width, height: contentSize.height)
         )
         placeOnMainDisplay(window)
 
         windows.append(window)
         sessions[ObjectIdentifier(window)] = session
+        presetObservers[ObjectIdentifier(window)] = session.$devicePreset
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self, weak window] preset in
+                guard let self, let window else { return }
+                self.resize(window, for: preset)
+            }
 
         NSApp.setActivationPolicy(.regular)
         window.makeKeyAndOrderFront(nil)
@@ -84,12 +91,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         sessions[ObjectIdentifier(window)]?.focusAddress()
     }
 
+    // Re-fit when the window moves to another display, so it's 100% wherever that fits.
+    func windowDidChangeScreen(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow,
+              let session = sessions[ObjectIdentifier(window)] else {
+            return
+        }
+
+        resize(window, for: session.devicePreset)
+    }
+
     func windowWillClose(_ notification: Notification) {
         guard let window = notification.object as? NSWindow else {
             return
         }
 
         sessions.removeValue(forKey: ObjectIdentifier(window))
+        presetObservers.removeValue(forKey: ObjectIdentifier(window))
         windows.removeAll { $0 === window }
     }
 
@@ -97,10 +115,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         true
     }
 
-    private func placeOnMainDisplay(_ window: NSWindow) {
-        let screen = NSScreen.screens.first { $0.frame.origin == .zero } ?? NSScreen.main ?? NSScreen.screens.first
+    private var mainDisplay: NSScreen? {
+        NSScreen.screens.first { $0.frame.origin == .zero } ?? NSScreen.main ?? NSScreen.screens.first
+    }
 
-        guard let visibleFrame = screen?.visibleFrame else {
+    /// The device at 100% (1 point = 1 point) plus the URL bar, scaled down
+    /// only when the screen can't fit it.
+    private func contentSize(for preset: DevicePreset, on screen: NSScreen?) -> NSSize {
+        var scale: CGFloat = 1
+
+        if let visible = screen?.visibleFrame {
+            let probe = NSRect(x: 0, y: 0, width: 100, height: 100)
+            let titleBarHeight = NSWindow.frameRect(forContentRect: probe, styleMask: styleMask).height - probe.height
+            let maxHeight = visible.height - titleBarHeight - urlBarHeight - screenMargin * 2
+            let maxWidth = visible.width - screenMargin * 2
+            scale = min(1, maxHeight / preset.height, maxWidth / preset.width)
+        }
+
+        return NSSize(
+            width: (preset.width * scale).rounded(),
+            height: (preset.height * scale).rounded() + urlBarHeight
+        )
+    }
+
+    private func resize(_ window: NSWindow, for preset: DevicePreset) {
+        let screen = window.screen ?? mainDisplay
+        let size = contentSize(for: preset, on: screen)
+        let old = window.frame
+        var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size))
+
+        // Grow and shrink around the top center so the title bar stays put.
+        frame.origin = NSPoint(x: old.midX - frame.width / 2, y: old.maxY - frame.height)
+
+        if let visible = screen?.visibleFrame {
+            frame.origin.x = min(max(frame.minX, visible.minX), visible.maxX - frame.width)
+            frame.origin.y = min(max(frame.minY, visible.minY), visible.maxY - frame.height)
+        }
+
+        window.contentMinSize = size
+        window.contentMaxSize = size
+        window.setFrame(frame, display: true, animate: !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+    }
+
+    private func placeOnMainDisplay(_ window: NSWindow) {
+        guard let visibleFrame = mainDisplay?.visibleFrame else {
             window.center()
             return
         }

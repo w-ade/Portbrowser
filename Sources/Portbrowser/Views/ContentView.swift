@@ -6,10 +6,9 @@ struct ContentView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isLandscape = false
 
-    // The bundled status-bar asset is drawn for a 402 x 62 iPhone 17 canvas;
-    // everything scales off that so the chrome morphs with the device.
-    private let designWidth: CGFloat = 402
-    private let designStatusHeight: CGFloat = 62
+    // iOS keeps status-bar glyphs the same size on every iPhone, so the bar
+    // is laid out at the device's width rather than scaled from one design.
+    private let statusHeight: CGFloat = 62
 
     private var preset: DevicePreset {
         session.devicePreset
@@ -21,14 +20,6 @@ struct ContentView: View {
 
     private var viewportHeight: CGFloat {
         isLandscape ? preset.width : preset.height
-    }
-
-    private var statusScale: CGFloat {
-        viewportWidth / designWidth
-    }
-
-    private var statusHeight: CGFloat {
-        designStatusHeight * statusScale
     }
 
     private var webViewHeight: CGFloat {
@@ -72,9 +63,9 @@ struct ContentView: View {
     }
 
     private func statusOverlay(scale: CGFloat) -> some View {
-        IPhoneStatusOverlay()
-            .frame(width: designWidth, height: designStatusHeight, alignment: .top)
-            .scaleEffect(statusScale * scale, anchor: .topLeading)
+        IPhoneStatusOverlay(preset: preset, width: viewportWidth)
+            .frame(width: viewportWidth, height: statusHeight, alignment: .topLeading)
+            .scaleEffect(scale, anchor: .topLeading)
             .frame(width: viewportWidth * scale, height: statusHeight * scale, alignment: .topLeading)
             .allowsHitTesting(false)
     }
@@ -89,13 +80,20 @@ struct ContentView: View {
 }
 
 private struct IPhoneStatusOverlay: View {
-    var body: some View {
-        ZStack(alignment: .top) {
-            RoundedRectangle(cornerRadius: 19, style: .continuous)
-                .fill(.black)
-                .frame(width: 126, height: 37)
-                .padding(.top, 14)
+    let preset: DevicePreset
+    let width: CGFloat
 
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            if let islandWidth = preset.islandWidth {
+                Capsule(style: .continuous)
+                    .fill(.black)
+                    .frame(width: islandWidth, height: 37)
+                    .position(x: width / 2, y: 14 + 37 / 2)
+            }
+
+            // The asset now holds only the right-hand icons; pin them to the
+            // right edge so they keep their inset on wider devices.
             if let imageURL = Bundle.module.url(
                 forResource: "iphone-status-bar",
                 withExtension: "svg"
@@ -104,16 +102,19 @@ private struct IPhoneStatusOverlay: View {
                     .resizable()
                     .interpolation(.high)
                     .frame(width: 402, height: 62)
+                    .offset(x: width - 402)
             }
 
-            StatusClock()
+            StatusClock(center: preset.clockCenter)
         }
+        .frame(width: width, height: 62, alignment: .topLeading)
     }
 }
 
 // Live replacement for the time the status-bar asset used to bake in.
-// Matches the asset's glyph box: centered at x 73.5, baseline at y 39.
 private struct StatusClock: View {
+    let center: CGPoint
+
     var body: some View {
         TimelineView(.everyMinute) { context in
             Text(context.date.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute(.twoDigits)))
@@ -121,8 +122,7 @@ private struct StatusClock: View {
                 .kerning(0.45)
                 .foregroundStyle(.black)
                 .fixedSize()
-                .position(x: 73.9, y: 32.7)
+                .position(center)
         }
-        .frame(width: 402, height: 62)
     }
 }
