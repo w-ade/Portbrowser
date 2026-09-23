@@ -1,4 +1,4 @@
-# Portview
+# Portbrowser
 
 A focused macOS window for previewing local websites at iPhone viewport sizes.
 
@@ -30,4 +30,4 @@ To launch with a specific URL:
 PORTBROWSER_URL=http://localhost:3000 ./script/build_and_run.sh
 ```
 
-The app bundle is generated at `dist/Portview.app`.
+The app bundle is generated at `dist/Portbrowser.app`.

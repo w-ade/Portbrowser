@@ -1,4 +1,4 @@
-# Portview backlog
+# Portbrowser backlog
 
 The path from working prototype to a renamed, distributable macOS developer utility.
 
@@ -33,7 +33,7 @@ The path from working prototype to a renamed, distributable macOS developer util
 - **Size:** S
 - **Tags:** persistence, migration
 - **Why:** changing the bundle identifier can strand recent URLs and preferences under the old defaults domain.
-- **Spec:** define the final defaults keys and migrate existing Portview recent URLs/settings once when the renamed app first launches.
+- **Spec:** define the final defaults keys and migrate recent URLs/settings from the old `dev.wade.portview` defaults domain once when the renamed app first launches.
 - **Done means:** existing local state survives the rename without keeping legacy branding visible.
 
 ## PB-011 · Add browser loading and failure states
@@ -166,7 +166,7 @@ The path from working prototype to a renamed, distributable macOS developer util
 - **Tags:** viewport
 - **Why:** the preview must match the trusted iPhone 17 viewport closely enough for daily layout work.
 - **Spec:** render the iPhone 17 logical viewport at the Simulator's visible scale without a fake device shell.
-- **Done means:** Portview uses a fixed 366 x 795 visible viewport backed by a 402 x 874 logical mobile webview.
+- **Done means:** Portbrowser uses a fixed 366 x 795 visible viewport backed by a 402 x 874 logical mobile webview.
 
 ## PB-002 · Keep the window intentionally fixed
 - **Status:** done 2026-07-20
