@@ -1,5 +1,11 @@
-.build/
-dist/
-work/
 .DS_Store
-Icon/AppIcon.iconset/
+work/
+
+# app/ (Swift)
+app/.build/
+app/dist/
+app/Icon/AppIcon.iconset/
+
+# site/ (Next.js) — see site/.gitignore for the full list
+site/node_modules/
+site/.next/

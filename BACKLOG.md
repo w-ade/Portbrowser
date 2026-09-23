@@ -4,6 +4,15 @@ The path from working prototype to a renamed, distributable macOS developer util
 
 ## Now
 
+## PB-024 · Rename the landing site to Portbrowser and wire it to this repo
+- **Status:** open
+- **Size:** S
+- **Tags:** site, brand
+- **Why:** `site/` was merged in from `w-ade/portview-site` (Portview branding, useportview.com) and needs to catch up with the app rename.
+- **Spec:** finish the site's visual design and copy for Portbrowser, point Vercel's project at this repo's `site/` folder, and decide the domain (useportview.com vs. a portbrowser.* domain).
+- **Done means:** the deployed site matches the app's name and the repo is the single source of truth for both.
+
+
 ## PB-007 · Rename and reposition the product
 - **Status:** open
 - **Size:** M
