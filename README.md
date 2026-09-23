@@ -7,7 +7,7 @@ The current build opens the preview as a flush, full-size iPhone canvas without 
 ## Features
 
 - Localhost, LAN, and HTTPS URL support
-- Portrait iPhone 13 through iPhone 17 viewport presets
+- Portrait iPhone 16, 17, and 18 series viewport presets
 - Full-size `402 x 874` iPhone 17 canvas by default
 - URL entry directly beneath the viewport
 - Fit-to-window scaling when the window is resized
