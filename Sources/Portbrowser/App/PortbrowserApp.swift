@@ -8,7 +8,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var windows: [NSWindow] = []
     private var sessions: [ObjectIdentifier: BrowserSession] = [:]
     private var presetObservers: [ObjectIdentifier: AnyCancellable] = [:]
-    private let urlBarHeight: CGFloat = 32
     private let styleMask: NSWindow.StyleMask = [.titled, .closable, .miniaturizable]
     private let screenMargin: CGFloat = 8
 
@@ -45,14 +44,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.contentView = NSHostingView(
-            rootView: VStack(spacing: 0) {
-                ContentView(session: session)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                URLBarView(session: session)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: urlBarHeight)
-            }
+            rootView: ContentView(session: session)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         )
         placeOnMainDisplay(window)
 
@@ -119,22 +112,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSScreen.screens.first { $0.frame.origin == .zero } ?? NSScreen.main ?? NSScreen.screens.first
     }
 
-    /// The device at 100% (1 point = 1 point) plus the URL bar, scaled down
-    /// only when the screen can't fit it.
+    /// The device at 100% (1 point = 1 point), scaled down only when the
+    /// screen can't fit it. The Safari toolbar floats inside the viewport.
     private func contentSize(for preset: DevicePreset, on screen: NSScreen?) -> NSSize {
         var scale: CGFloat = 1
 
         if let visible = screen?.visibleFrame {
             let probe = NSRect(x: 0, y: 0, width: 100, height: 100)
             let titleBarHeight = NSWindow.frameRect(forContentRect: probe, styleMask: styleMask).height - probe.height
-            let maxHeight = visible.height - titleBarHeight - urlBarHeight - screenMargin * 2
+            let maxHeight = visible.height - titleBarHeight - screenMargin * 2
             let maxWidth = visible.width - screenMargin * 2
             scale = min(1, maxHeight / preset.height, maxWidth / preset.width)
         }
 
         return NSSize(
             width: (preset.width * scale).rounded(),
-            height: (preset.height * scale).rounded() + urlBarHeight
+            height: (preset.height * scale).rounded()
         )
     }
 

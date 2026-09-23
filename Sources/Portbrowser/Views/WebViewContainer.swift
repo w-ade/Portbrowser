@@ -5,7 +5,11 @@ struct WebViewContainer: NSViewRepresentable {
     let url: URL?
     let reloadToken: Int
     let hardReloadToken: Int
+    let goBackToken: Int
     let pageZoom: CGFloat
+    /// Bottom strip covered by the Safari toolbar; the page lays out above it.
+    var obscuredBottom: CGFloat = 0
+    var onNavigate: (URL?, Bool) -> Void = { _, _ in }
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -31,6 +35,12 @@ struct WebViewContainer: NSViewRepresentable {
     func updateNSView(_ webView: WKWebView, context: Context) {
         DebugLog.log("updateNSView url=\(url?.absoluteString ?? "nil") reload=\(reloadToken) hard=\(hardReloadToken)")
 
+        context.coordinator.onNavigate = onNavigate
+
+        if #available(macOS 26, *), webView.obscuredContentInsets.bottom != obscuredBottom {
+            webView.obscuredContentInsets = NSEdgeInsets(top: 0, left: 0, bottom: obscuredBottom, right: 0)
+        }
+
         let nextZoom = max(0.1, pageZoom)
 
         if abs(webView.pageZoom - nextZoom) > 0.001 {
@@ -40,6 +50,11 @@ struct WebViewContainer: NSViewRepresentable {
         if context.coordinator.reloadToken != reloadToken {
             context.coordinator.reloadToken = reloadToken
             webView.reload()
+        }
+
+        if context.coordinator.goBackToken != goBackToken {
+            context.coordinator.goBackToken = goBackToken
+            webView.goBack()
         }
 
         if context.coordinator.hardReloadToken != hardReloadToken {
@@ -96,9 +111,25 @@ struct WebViewContainer: NSViewRepresentable {
         var hasLoadedInitialState = false
         var reloadToken = 0
         var hardReloadToken = 0
+        var goBackToken = 0
+        var onNavigate: (URL?, Bool) -> Void = { _, _ in }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
             DebugLog.log("navigation START \(webView.url?.absoluteString ?? "nil")")
+        }
+
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            report(webView)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            report(webView)
+        }
+
+        // The blank start page is an HTML string with no real URL; don't surface it.
+        private func report(_ webView: WKWebView) {
+            let url = webView.url.flatMap { $0.scheme == "about" ? nil : $0 }
+            onNavigate(url, webView.canGoBack)
         }
     }
 }

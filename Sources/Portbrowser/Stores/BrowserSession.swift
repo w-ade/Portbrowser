@@ -9,6 +9,10 @@ final class BrowserSession: ObservableObject {
     @Published private(set) var reloadToken = 0
     @Published private(set) var hardReloadToken = 0
     @Published private(set) var focusAddressToken = 0
+    @Published private(set) var goBackToken = 0
+    /// Where the web view actually is, which moves on link clicks and redirects.
+    @Published private(set) var currentURL: URL?
+    @Published private(set) var canGoBack = false
 
     private let recentStore = RecentURLStore()
     private var hasLoadedInitialURL = false
@@ -44,6 +48,23 @@ final class BrowserSession: ObservableObject {
         inputURL = normalized
         loadedURL = url
         recentStore.add(normalized)
+    }
+
+    var recentURLs: [String] {
+        recentStore.urls
+    }
+
+    func goBack() {
+        goBackToken += 1
+    }
+
+    func didNavigate(to url: URL?, canGoBack: Bool) {
+        currentURL = url
+        self.canGoBack = canGoBack
+
+        if let url {
+            inputURL = url.absoluteString
+        }
     }
 
     func reload() {

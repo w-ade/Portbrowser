@@ -22,8 +22,15 @@ struct ContentView: View {
         isLandscape ? preset.width : preset.height
     }
 
+    // macOS 26 WebKit can shrink the layout viewport while the page still
+    // scrolls under the toolbar, like Safari. Older systems just end the view there.
+    private static let supportsObscuredInsets: Bool = {
+        if #available(macOS 26, *) { true } else { false }
+    }()
+
     private var webViewHeight: CGFloat {
-        max(1, viewportHeight - statusHeight)
+        let covered = Self.supportsObscuredInsets ? 0 : SafariToolbar.obscuredHeight
+        return max(1, viewportHeight - statusHeight - covered)
     }
 
     var body: some View {
@@ -52,11 +59,19 @@ struct ContentView: View {
                 url: session.loadedURL,
                 reloadToken: session.reloadToken,
                 hardReloadToken: session.hardReloadToken,
-                pageZoom: 1
+                goBackToken: session.goBackToken,
+                pageZoom: 1,
+                obscuredBottom: Self.supportsObscuredInsets ? SafariToolbar.obscuredHeight : 0,
+                onNavigate: { url, canGoBack in
+                    session.didNavigate(to: url, canGoBack: canGoBack)
+                }
             )
             .frame(width: viewportWidth, height: webViewHeight)
         }
         .frame(width: viewportWidth, height: viewportHeight)
+        .overlay(alignment: .bottom) {
+            SafariToolbar(session: session)
+        }
         .scaleEffect(scale, anchor: .topLeading)
         .frame(width: viewportWidth * scale, height: viewportHeight * scale, alignment: .topLeading)
         .clipped()
