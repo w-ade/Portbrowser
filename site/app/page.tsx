@@ -29,7 +29,7 @@ export default function Home() {
             target="_blank"
             rel="noopener"
             aria-label="Portbrowser on GitHub"
-            className="inline-block align-[-0.15em] text-[#007AFF] opacity-90 transition-opacity hover:opacity-100"
+            className="inline-block align-[-0.15em] text-[#007AFF] opacity-90 dark:text-[#0A84FF] transition-opacity hover:opacity-100"
           >
             {/* GitHub's mark (octicon mark-github), sized to the text */}
             <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true">
@@ -43,17 +43,17 @@ export default function Home() {
             // and corner, with the text and icon kept at readable sizes
             <li
               key={s.label}
-              className="relative aspect-[375/230] rounded-[12px] bg-[#F6F6F5] p-3 sm:p-3.5"
+              className="relative aspect-[375/230] rounded-[12px] bg-[#F6F6F5] p-3 sm:p-3.5 dark:bg-[#1C1C1E]"
             >
-              <p className="text-[15px] font-medium leading-tight text-[#323232]">{s.value}</p>
-              <p className="mt-0.5 text-[11px] leading-tight text-[#666666]">{s.label}</p>
+              <p className="text-[15px] font-medium leading-tight text-[#323232] dark:text-[#F2F2F2]">{s.value}</p>
+              <p className="mt-0.5 text-[11px] leading-tight text-[#666666] dark:text-[#98989D]">{s.label}</p>
               {/* eslint-disable-next-line @next/next/no-img-element -- tiny static svg */}
               <img
                 src={`/stat-icons/${s.icon}.svg`}
                 alt=""
                 width={22}
                 height={22}
-                className="absolute right-3 bottom-3 sm:right-3.5 sm:bottom-3.5"
+                className="absolute right-3 bottom-3 sm:right-3.5 sm:bottom-3.5 dark:invert"
               />
             </li>
           ))}
@@ -61,7 +61,7 @@ export default function Home() {
       </div>
       {/* TODO: swap font-family to "Gen Interface JP Display" once the font file is available in this project */}
       <p
-        className="fixed inset-x-0 bottom-5 px-4 text-center text-[9px] font-normal text-[#E8E8E8]"
+        className="fixed inset-x-0 bottom-5 px-4 text-center text-[9px] font-normal text-[#E8E8E8] dark:text-[#3A3A3C]"
         style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
       >
         Made on macOS, for checking the thing before you check the thing on

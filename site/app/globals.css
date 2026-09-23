@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
+/* `dark:` = the device is dark and the toggle hasn't said light, or the
+   toggle has said dark */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *, :root:not([data-theme="light"])) {
+      @slot;
+    }
+  }
+}
+
 :root {
+  /* follows the device: native scrollbars and form bits go dark too */
+  color-scheme: light dark;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -12,12 +27,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* dark follows the device unless the toggle has picked a side:
+   data-theme="dark" forces it on, data-theme="light" keeps it off */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+:root[data-theme="light"] { color-scheme: light; }
 
 body {
   background: var(--background);
