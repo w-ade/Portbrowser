@@ -34,6 +34,9 @@ if [[ -d "$RESOURCE_BUNDLE" ]]; then
   cp -R "$RESOURCE_BUNDLE" "$APP_RESOURCES/"
 fi
 
+# App icon, rendered by script/render_icon.swift.
+cp "$ROOT_DIR/Icon/AppIcon.icns" "$APP_RESOURCES/AppIcon.icns"
+
 cat >"$INFO_PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -41,6 +44,8 @@ cat >"$INFO_PLIST" <<PLIST
 <dict>
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>CFBundleIdentifier</key>
   <string>$BUNDLE_ID</string>
   <key>CFBundleName</key>
@@ -63,6 +68,9 @@ cat >"$INFO_PLIST" <<PLIST
 </dict>
 </plist>
 PLIST
+
+# Nudge Finder and the Dock to pick up a changed icon.
+touch "$APP_BUNDLE"
 
 open_app() {
   if [[ -n "${PORTBROWSER_URL:-}" ]]; then

@@ -31,3 +31,11 @@ PORTBROWSER_URL=http://localhost:3000 ./script/build_and_run.sh
 ```
 
 The app bundle is generated at `dist/Portbrowser.app`.
+
+## App icon
+
+`Icon/AppIcon.icns` is rendered from the "Soft depth" design by `script/render_icon.swift`. To change it, edit that script and run:
+
+```bash
+swift script/render_icon.swift . && iconutil -c icns Icon/AppIcon.iconset -o Icon/AppIcon.icns
+```
