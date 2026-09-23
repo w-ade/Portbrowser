@@ -20,3 +20,14 @@ enum URLNormalizer {
         return URL(string: value)
     }
 }
+
+extension URL {
+    /// Host plus any non-default port, e.g. "localhost:3000" or "ref.garden".
+    var displayHost: String? {
+        guard let host = host() else {
+            return nil
+        }
+
+        return port.map { "\(host):\($0)" } ?? host
+    }
+}

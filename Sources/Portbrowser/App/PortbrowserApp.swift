@@ -7,7 +7,8 @@ import Combine
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var windows: [NSWindow] = []
     private var sessions: [ObjectIdentifier: BrowserSession] = [:]
-    private var presetObservers: [ObjectIdentifier: AnyCancellable] = [:]
+    private var observers: [ObjectIdentifier: Set<AnyCancellable>] = [:]
+    private let topLeftKey = "windowTopLeft"
     private let styleMask: NSWindow.StyleMask = [.titled, .closable, .miniaturizable]
     private let screenMargin: CGFloat = 8
 
@@ -27,7 +28,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @objc private func openNewWindow(_ sender: Any?) {
         let session = BrowserSession()
-        let contentSize = contentSize(for: session.devicePreset, on: mainDisplay)
+        let cascadeFrom = NSApp.keyWindow.map { NSPoint(x: $0.frame.minX, y: $0.frame.maxY) }
+        let savedTopLeft = cascadeFrom == nil ? self.savedTopLeft : nil
+        let screen = savedTopLeft.flatMap(screen(containing:)) ?? mainDisplay
+        let contentSize = contentSize(for: session.devicePreset, on: screen)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
             styleMask: styleMask,
@@ -35,7 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             defer: false
         )
 
-        window.title = "Portbrowser"
+        window.title = session.devicePreset.name
         window.backgroundColor = .white
         window.isOpaque = true
         window.hasShadow = true
@@ -47,17 +51,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             rootView: ContentView(session: session)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         )
-        placeOnMainDisplay(window)
+        if let cascadeFrom {
+            window.cascadeTopLeft(from: cascadeFrom)
+        } else if let savedTopLeft, let visible = screen?.visibleFrame {
+            let frame = window.frame
+            window.setFrameTopLeftPoint(NSPoint(
+                x: min(max(savedTopLeft.x, visible.minX), visible.maxX - frame.width),
+                y: min(max(savedTopLeft.y, visible.minY + frame.height), visible.maxY)
+            ))
+        } else {
+            placeOnMainDisplay(window)
+        }
 
         windows.append(window)
         sessions[ObjectIdentifier(window)] = session
-        presetObservers[ObjectIdentifier(window)] = session.$devicePreset
+
+        var windowObservers = Set<AnyCancellable>()
+        session.$devicePreset
             .dropFirst()
             .removeDuplicates()
             .sink { [weak self, weak window] preset in
                 guard let self, let window else { return }
                 self.resize(window, for: preset)
             }
+            .store(in: &windowObservers)
+
+        // Title bar says what the window shows: device over site, like Device Hub.
+        session.$devicePreset
+            .combineLatest(session.$currentURL, session.$loadedURL)
+            .sink { [weak window] preset, currentURL, loadedURL in
+                window?.title = preset.name
+                window?.subtitle = (currentURL ?? loadedURL)?.displayHost ?? ""
+            }
+            .store(in: &windowObservers)
+        observers[ObjectIdentifier(window)] = windowObservers
 
         NSApp.setActivationPolicy(.regular)
         window.makeKeyAndOrderFront(nil)
@@ -94,18 +121,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         resize(window, for: session.devicePreset)
     }
 
+    func windowDidMove(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else {
+            return
+        }
+
+        UserDefaults.standard.set([window.frame.minX, window.frame.maxY], forKey: topLeftKey)
+    }
+
     func windowWillClose(_ notification: Notification) {
         guard let window = notification.object as? NSWindow else {
             return
         }
 
         sessions.removeValue(forKey: ObjectIdentifier(window))
-        presetObservers.removeValue(forKey: ObjectIdentifier(window))
+        observers.removeValue(forKey: ObjectIdentifier(window))
         windows.removeAll { $0 === window }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
+    }
+
+    private var savedTopLeft: NSPoint? {
+        guard let values = UserDefaults.standard.array(forKey: topLeftKey) as? [Double], values.count == 2 else {
+            return nil
+        }
+
+        return NSPoint(x: values[0], y: values[1])
+    }
+
+    /// The display a saved position belongs to, if it's still connected.
+    private func screen(containing topLeft: NSPoint) -> NSScreen? {
+        let probe = NSPoint(x: topLeft.x + 20, y: topLeft.y - 20)
+        return NSScreen.screens.first { $0.frame.contains(probe) }
     }
 
     private var mainDisplay: NSScreen? {
@@ -170,6 +219,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         let appMenuItem = NSMenuItem()
         let appMenu = NSMenu(title: "Portbrowser")
+        appMenu.addItem(menuItem(title: "About Portbrowser", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
+        appMenu.addItem(.separator())
+        let servicesItem = NSMenuItem(title: "Services", action: nil, keyEquivalent: "")
+        let servicesMenu = NSMenu(title: "Services")
+        servicesItem.submenu = servicesMenu
+        NSApp.servicesMenu = servicesMenu
+        appMenu.addItem(servicesItem)
+        appMenu.addItem(.separator())
+        appMenu.addItem(menuItem(title: "Hide Portbrowser", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h"))
+        appMenu.addItem(menuItem(title: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h", modifiers: [.command, .option]))
+        appMenu.addItem(menuItem(title: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: ""))
+        appMenu.addItem(.separator())
         appMenu.addItem(menuItem(title: "Quit Portbrowser", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         mainMenu.addItem(appMenuItem)
@@ -200,6 +261,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         viewMenu.addItem(menuItem(title: "Reload", action: #selector(reloadCurrentWindow(_:)), keyEquivalent: "r"))
         viewMenuItem.submenu = viewMenu
         mainMenu.addItem(viewMenuItem)
+
+        let windowMenuItem = NSMenuItem()
+        let windowMenu = NSMenu(title: "Window")
+        windowMenu.addItem(menuItem(title: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"))
+        windowMenu.addItem(menuItem(title: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: ""))
+        windowMenu.addItem(.separator())
+        windowMenu.addItem(menuItem(title: "Bring All to Front", action: #selector(NSApplication.arrangeInFront(_:)), keyEquivalent: ""))
+        windowMenuItem.submenu = windowMenu
+        mainMenu.addItem(windowMenuItem)
+        NSApp.windowsMenu = windowMenu
+
+        // An empty Help menu still gets the system's menu search field.
+        let helpMenuItem = NSMenuItem()
+        let helpMenu = NSMenu(title: "Help")
+        helpMenuItem.submenu = helpMenu
+        mainMenu.addItem(helpMenuItem)
+        NSApp.helpMenu = helpMenu
 
         NSApp.mainMenu = mainMenu
     }
